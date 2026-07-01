@@ -3,6 +3,7 @@ import { ContainerScroll } from "./Scroll";
 import Button from "../../components/Button";
 import ChevronRight from "../../components/icons/ChevronRight";
 import { Link } from "react-router-dom";
+import heroImg from "./heroimg.png"
 
 interface LightningProps {
     hue?: number;
@@ -261,10 +262,11 @@ export default function HeroSection() {
             </div>
 
             <ContainerScroll titleComponent={<></>}>
-                <p className="text-[calc(1rem+1vw)]! font-thin! text-(--text)!">
+                {/* <p className="text-[calc(1rem+1vw)]! font-thin! text-(--text)!">
                     Draw&nbsp;SVGs on the <strong>GPU</strong> at{" "}
                     <span className="underline text-(--primary)!">lightning</span> speeds
-                </p>
+                </p> */}
+                <img src={heroImg} className="w-full h-full cover-fit" />
             </ContainerScroll>
         </div>
     );

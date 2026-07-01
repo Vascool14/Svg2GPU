@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+:root {
+    color-scheme: light dark;
+    background-color: var(--bg);
+    color: var(--text);
+
+    /* Variables */
+    --text: #f5f5f5;
+    --text-thin: #f5f5f588;
+    --bg: #08090a;
+    --bg-darker: #1e1e1e;
+    --bg-90: #08090a80;
+
+    --primary: #2e9dfe;
+    /* --primary: #f97315; */
+    --primary-dark: rgb(10, 39, 35);
+    --primary-thin: rgb(90, 196, 182, 0.15);
+    --gray: #8888;
+    --gray-thin: #88888815;
+
+    --nav-height: 4.5rem;
+    --footer-height: min(20vh, 13rem);
+    --treeview-width: min(17rem, 22vw);
+    --radius: 0.5rem;
+    --timing: cubic-bezier(0.175, 0.885, 0.32, 1.275); /* bouncy transitions */
+    --padding: 1.5rem;
+    --bulb-size: calc(45rem + 5vw);
+
+    font-size: 13px;
+}
+
+/* Global styles */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    border-color: #8883;
+}
+
+body,
+html,
+#root {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg);
+    width: 100vw;
+    width: 100dvw;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+a {
+    color: red;
+}
+.pLink {
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s !important;
+    color: var(--text-thin);
+    p {
+        color: var(--text-thin);
+    }
+}
+.pLink:hover {
+    color: var(--text);
+    p {
+        color: var(--text);
+    }
+}
+
+img {
+    object-fit: cover;
+}
+
+.hugeTitle {
+    font-size: calc(3rem + 5vw);
+}
+h1 {
+    font-size: calc(2rem + 1vw);
+    font-weight: 700;
+}
+h2 {
+    font-size: calc(1.6rem + 0.5vw);
+    font-weight: 600;
+}
+h3 {
+    font-size: calc(1.4rem + 0.3vw);
+    font-weight: 500;
+}
+h4 {
+    font-size: calc(1.2rem + 0.2vw);
+    font-weight: 500;
+}
+h5 {
+    font-size: calc(1rem + 0.1vw);
+    font-weight: 500;
+}
+p {
+    font-size: calc(1rem + 0.1vw);
+    color: var(--text-thin);
+}
+span {
+    color: var(--text-thin);
+    color: inherit;
+}
+hr {
+    border-color: var(--bg-darker);
+}
+
+main {
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+}
+
+body {
+    /* Scrollbar settings */
+    ::-webkit-scrollbar {
+        width: 5px;
+        height: 0;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #88888866;
+    }
+    :active::-webkit-scrollbar-thumb {
+        background: var(--text);
+    }
+}
+
+.code-component {
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+}
+
+/* 1. Phone: 0px -> 639px */
+@media (min-width: 0px) {
+    :root {
+        font-size: 13px;
+    }
+}
+
+/* 2. Tablet: 640px -> 1023px */
+@media (min-width: 640px) {
+    :root {
+        font-size: 14px;
+    }
+}
+
+/* 3. Laptop: 1024px -> 1535px */
+@media (min-width: 1024px) {
+    :root {
+        font-size: 15px;
+    }
+}
+
+/* 4. Desktop: 1536px -> INFINITY */
+@media (min-width: 1536px) {
+    :root {
+        font-size: 16px;
+    }
+}

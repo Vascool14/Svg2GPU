@@ -1,0 +1,23 @@
+{
+	"entryPoints": ["src"],
+	"out": "../client/public/typedoc",
+	"name": "svg2GPU API Docs",
+	"includeVersion": true,
+	"readme": "README.md",
+	"customCss": "../client/typedoc/typedoc.css",
+	"titleLink": "https://www.svg2gpu.com",
+	"categorizeByGroup": false,
+	"sort": ["kind"],
+	"theme": "default",
+
+	"excludePrivate": true,
+	"excludeExternals": true,
+	"excludeProtected": false,
+	"disableSources": true,
+	"navigationLinks": {
+		"Examples": "https://www.svg2gpu.com/examples",
+		"Docs": "https://www.svg2gpu.com/docs",
+		"NPM": "https://www.npmjs.com/package/svg2gpu",
+		"GitHub": "https://github.com/Vascool14/svg2gpu"
+	}
+}

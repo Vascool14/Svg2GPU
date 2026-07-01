@@ -26,7 +26,7 @@ export default function Navbar() {
             <Link to="/docs" className="navItem">
                 Docs
             </Link>
-            <a href="/typedoc/" className="navItem max-sm:hidden">
+            <a href="/typedoc/classes/Svg2GPU.html" className="navItem max-sm:hidden">
                 Typedoc
             </a>
 

@@ -1,17 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
-import { SVGParser, WebGPURenderer } from "../../../../svg2gpu/src";
 import { SVG_EXAMPLES } from "./constants";
 
 const INITIAL_SVG = SVG_EXAMPLES[5]?.svg
-
-const FALLBACK_STYLE = {
-    fill: [1, 0, 0, 0],
-    fillOpacity: 0.8,
-    stroke: [0, 0, 0, 1],
-    strokeWidth: 1.5,
-    strokeOpacity: 1,
-};
 
 type ConsoleMessage = {
     id: number;
@@ -20,16 +11,35 @@ type ConsoleMessage = {
     time: string;
 };
 
+type GpuSceneStats = {
+    batches: number;
+    vertices: number;
+    indices: number;
+};
+
+type Svg2GPUInstance = {
+    ready: Promise<void>;
+    render: () => void;
+    destroy: () => void;
+    getStats: () => GpuSceneStats | null;
+};
+
+type Svg2GPUConstructor = new (
+    rootElementId: string,
+    options: {
+        svg: string;
+        antialias?: boolean;
+        background?: [number, number, number] | [number, number, number, number];
+        fit?: "contain" | "cover" | "stretch" | "none";
+        flattenTolerance?: number;
+    },
+) => Svg2GPUInstance;
+
 const TERMINAL_MIN_LINES = 2;
 const TERMINAL_MAX_LINES = 35;
 const TERMINAL_DEFAULT_LINES = 6;
 const TERMINAL_LINE_HEIGHT_PX = 18;
 const TERMINAL_HISTORY_LIMIT = 200;
-
-function extractViewBox(svg: string): string {
-    const match = svg.match(/viewBox\s*=\s*["']([^"']+)["']/i);
-    return match?.[1] ?? "0 0 24 24";
-}
 
 function validateSvg(svg: string): { valid: true } | { valid: false; error: string } {
     const trimmed = svg.trim();
@@ -88,18 +98,23 @@ function normalizePreviewSvg(svg: string, showBorder: boolean): string {
 }
 
 export default function Playground() {
+    const reactId = useId();
+    const gpuPreviewRootId = useMemo(
+        () => `playground-webgpu-${reactId.replace(/\W+/g, "-")}`,
+        [reactId],
+    );
     const [editorSvg, setEditorSvg] = useState(INITIAL_SVG);
     const [renderedSvg, setRenderedSvg] = useState(INITIAL_SVG);
     const [selectedExampleIndex, setSelectedExampleIndex] = useState(5);
     const [isExampleMenuOpen, setIsExampleMenuOpen] = useState(false);
-    const [showBorder, setShowBorder] = useState(true);
+    const [showBorder, setShowBorder] = useState(false);
     const [terminalLines, setTerminalLines] = useState(TERMINAL_DEFAULT_LINES);
     const [consoleMessages, setConsoleMessages] = useState<ConsoleMessage[]>([]);
 
-    const canvasRef = useRef<HTMLCanvasElement>(null);
     const canvasViewportRef = useRef<HTMLDivElement>(null);
     const exampleMenuRef = useRef<HTMLDivElement>(null);
     const consoleRef = useRef<HTMLDivElement>(null);
+    const gpuInstanceRef = useRef<Svg2GPUInstance | null>(null);
     const consoleIdRef = useRef(0);
     const dragStartYRef = useRef<number | null>(null);
     const dragStartLinesRef = useRef(TERMINAL_DEFAULT_LINES);
@@ -172,50 +187,71 @@ export default function Playground() {
     }, [editorSvg, pushConsoleMessage]);
 
     useEffect(() => {
-        const canvas = canvasRef.current;
         const canvasViewport = canvasViewportRef.current;
-        if (!canvas || !canvasViewport) return;
+        if (!canvasViewport) return;
 
-        const renderer = new WebGPURenderer(canvas, extractViewBox(renderedSvg));
-        let hasLoggedRenderForThisSvg = false;
+        let cancelled = false;
+        let instance: Svg2GPUInstance | null = null;
+        const root = document.getElementById(gpuPreviewRootId);
+        const renderStart = performance.now();
 
-        const draw = () => {
-            const renderStart = performance.now();
-            const rect = canvasViewport.getBoundingClientRect();
-            const dpr = window.devicePixelRatio || 1;
-            const nextWidth = Math.max(1, Math.floor(rect.width * dpr));
-            const nextHeight = Math.max(1, Math.floor(rect.height * dpr));
+        if (!root) {
+            pushConsoleMessage("error", "WebGPU preview root was not found.");
+            return;
+        }
 
-            if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
-                canvas.width = nextWidth;
-                canvas.height = nextHeight;
-            }
+        root.innerHTML = "";
 
-            renderer.clear();
-
-            const parsedSvg = SVGParser.parse(renderedSvg);
-            for (const element of parsedSvg) {
-                if (!("d" in element) || !Array.isArray(element.d)) continue;
-
-                const style: RenderStyle = {
-                    fill: element.fill ?? FALLBACK_STYLE.fill,
-                    fillOpacity: element.fillOpacity ?? FALLBACK_STYLE.fillOpacity,
-                    stroke: element.stroke ?? FALLBACK_STYLE.stroke,
-                    strokeWidth: element.strokeWidth ?? FALLBACK_STYLE.strokeWidth,
-                    strokeOpacity: element.strokeOpacity ?? FALLBACK_STYLE.strokeOpacity,
+        const startRenderer = async () => {
+            try {
+                // @ts-expect-error The client consumes the built package artifact directly.
+                const module = (await import("../../../../svg2gpu/lib/svg2gpu.mjs")) as {
+                    Svg2GPU: Svg2GPUConstructor;
                 };
+                if (cancelled) return;
 
-                renderer.renderPath(element.d, style);
-            }
+                instance = new module.Svg2GPU(gpuPreviewRootId, {
+                    svg: renderedSvg,
+                    antialias: true,
+                    background: [1, 1, 1, 0],
+                    fit: "contain",
+                    flattenTolerance: 0.35,
+                });
+                gpuInstanceRef.current = instance;
 
-            const elapsed = Math.max(0, Math.round(performance.now() - renderStart));
-            if (!hasLoggedRenderForThisSvg) {
-                pushConsoleMessage("info", `rendered ${elapsed}ms`);
-                hasLoggedRenderForThisSvg = true;
+                await instance.ready;
+                if (cancelled) return;
+
+                const elapsed = Math.max(0, Math.round(performance.now() - renderStart));
+                const stats = instance.getStats();
+                const statsSummary = stats
+                    ? `, ${stats.batches} batches, ${stats.vertices} vertices, ${stats.indices} indices`
+                    : "";
+                pushConsoleMessage("info", `rendered ${elapsed}ms${statsSummary}`);
+            } catch (error) {
+                if (!cancelled) {
+                    pushConsoleMessage(
+                        "error",
+                        error instanceof Error ? error.message : "WebGPU rendering failed.",
+                    );
+                }
             }
         };
 
-        draw();
+        startRenderer();
+
+        const draw = () => {
+            if (!gpuInstanceRef.current || gpuInstanceRef.current !== instance) return;
+            try {
+                gpuInstanceRef.current.render();
+            } catch (error) {
+                pushConsoleMessage(
+                    "error",
+                    error instanceof Error ? error.message : "WebGPU redraw failed.",
+                );
+            }
+        };
+
         const resizeObserver = new ResizeObserver(draw);
         resizeObserver.observe(canvasViewport);
 
@@ -225,10 +261,16 @@ export default function Playground() {
         document.documentElement.style.setProperty("--side-padding", "1.8rem");
 
         return () => {
+            cancelled = true;
             resizeObserver.disconnect();
+            if (gpuInstanceRef.current === instance) {
+                gpuInstanceRef.current = null;
+            }
+            instance?.destroy();
+            root.innerHTML = "";
             document.documentElement.style.setProperty("--side-padding", originalSidePadding);
         };
-    }, [renderedSvg, pushConsoleMessage]);
+    }, [gpuPreviewRootId, renderedSvg, pushConsoleMessage]);
 
     useEffect(() => {
         const onPointerDown = (event: MouseEvent) => {
@@ -432,13 +474,9 @@ export default function Playground() {
                     </div>
                     <div
                         ref={canvasViewportRef}
-                        className="relative min-h-0 flex-1 overflow-hidden"
+                        className="relative min-h-0 flex-1 overflow-hidden justify-center flex"
                     >
-                        <canvas ref={canvasRef} id="canvas" className="h-full w-full hidden" />
-                        <div
-                            className="h-full w-full flex justify-center overflow-hidden"
-                            dangerouslySetInnerHTML={{ __html: svgPreviewMarkup }}
-                        />
+                        <div id={gpuPreviewRootId} className="h-full aspect-[1] flex justify-center mx-auto" />
                     </div>
                 </div>
             </div>

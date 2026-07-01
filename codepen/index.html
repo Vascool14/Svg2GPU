@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * { box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <section style="display: flex; width: 100vw; height: 100vh; padding: 1rem; gap: 1rem;">
+        <div id="svg-container" style="width: 600px; height: 600px; border: 1px red solid;"></div>
+        <div id="output-div" style="width: 600px; height: 600px; border: 1px red solid;"></div>
+    </section>
+
+    <script src="../svg2gpu/lib/svg2gpu.min.js"></script>
+    <script>
+        const { Svg2GPU } = window.svg2gpu;
+        
+        const svg = `<svg width="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="38" fill="#2e9dfe" />
+            <path d="M28 54 L44 70 L74 30" fill="none" stroke="white" stroke-width="8" stroke-linejoin="bevel" />
+        </svg>`;
+
+        const preview = new Svg2GPU("output-div", {
+            svg,
+            antialias: true,
+            flattenTolerance: 0.1,
+            // background: [0, 0, 0, 1],
+            // fit: "contain",
+        });
+
+
+        // Add this to also display the original SVG for comparison
+        document.getElementById("svg-container").innerHTML = svg;
+    </script>
+</body>
+</html>

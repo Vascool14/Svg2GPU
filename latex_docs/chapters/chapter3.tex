@@ -1,0 +1,294 @@
+\chapter{Geometry Processing for SVG-to-Mesh Conversion}
+\label{chap:geometry_conversion}
+
+\section{Conversion role in the rendering pipeline}
+
+In \texttt{Svg2GPU}, geometry conversion is the bridge between semantic SVG input and explicit rendering primitives.
+Parsing alone is not enough for GPU pipelines.
+Render backends require finite buffers (vertices, indices, style parameters), not command strings.
+
+A compact model of the flow is:
+
+\begin{equation}
+\mathcal{S}_{svg} \xrightarrow{parse} \mathcal{R}_{typed} \xrightarrow{convert} \mathcal{G}_{gpu} \xrightarrow{draw} \mathcal{I}_{pixels},
+\label{eq:conversion_pipeline}
+\end{equation}
+
+where $\mathcal{G}_{gpu}$ denotes render-ready geometry.
+Correctness and performance both depend heavily on the conversion step.
+
+\section{Tessellation fundamentals}
+
+\subsection{Why tessellation is required}
+
+GPU rasterizers operate on primitives, typically triangles.
+Therefore continuous SVG contours must be discretized.
+For fills, this means triangulation of interior regions.
+For strokes, this means generating finite-width geometry around centerlines.
+
+\subsection{Fill and stroke as distinct problems}
+
+Although both originate from paths, fill and stroke conversion differ:
+
+\begin{itemize}
+\item fill conversion is primarily topological (inside/outside interpretation),
+\item stroke conversion is primarily geometric (normals, joins, caps, width).
+\end{itemize}
+
+Treating them as separate concerns improves implementation clarity and debugging.
+
+\section{Triangulation strategies}
+
+\subsection{Practical selection criteria}
+
+A triangulation strategy for browser workloads should balance:
+
+\begin{itemize}
+\item correctness on common contour types,
+\item robustness under moderate edge cases,
+\item manageable implementation complexity,
+\item deterministic behavior.
+\end{itemize}
+
+\subsection{Delaunay and constrained variants}
+
+Delaunay triangulation is well studied and produces high-quality meshes \cite{shewchuk_triangle}.
+However, plain Delaunay does not automatically preserve polygon boundaries used by SVG fills.
+Constrained variants solve this but increase algorithmic and implementation complexity.
+
+\subsection{Ear clipping baseline}
+
+For a thesis prototype, ear clipping is a practical baseline.
+It is easier to implement and inspect, and works well for many simple polygons.
+Its known limitations (degenerate contours, non-simple polygons) can be mitigated with pre-validation and controlled fallback.
+
+\begin{table}[htbp]
+\centering
+\caption{Triangulation options and trade-offs}
+\label{tab:triangulation_tradeoffs}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.4cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule
+\textbf{Method} & \textbf{Complexity} & \textbf{Main advantage} & \textbf{Main limitation} \\
+\midrule
+Ear clipping & $O(n^2)$ & simple and transparent implementation & weaker behavior on pathological contours \\
+Monotone decomposition + triangulation & $O(n \log n)$ & better asymptotic profile & higher implementation cost \\
+Constrained Delaunay triangulation & $O(n \log n)$ avg. & high mesh quality with edge constraints & advanced data structure requirements \\
+Triangle fan fallback & $O(n)$ & minimal overhead & invalid for concave regions \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Numerical robustness}
+
+\subsection{Typical failure sources}
+
+Real SVG input may include:
+
+\begin{itemize}
+\item repeated points,
+\item nearly collinear segments,
+\item self-intersections,
+\item tiny edges,
+\item mixed winding in nested contours.
+\end{itemize}
+
+Unchecked, these issues can generate invalid triangles or unstable buffers.
+
+\subsection{Robustness rules}
+
+A practical robustness policy includes:
+
+\begin{itemize}
+\item finite-number checks after each conversion stage,
+\item tolerance-aware geometric tests,
+\item contour simplification before triangulation,
+\item deterministic fallback for non-convertible cases,
+\item explicit diagnostics for rejected geometry.
+\end{itemize}
+
+\subsection{Orientation support}
+
+Signed-area orientation tests are commonly used before triangulation:
+
+\begin{equation}
+A = \frac{1}{2}\sum_{i=0}^{n-1} \left(x_i y_{i+1} - x_{i+1} y_i\right),
+\label{eq:signed_area_compact}
+\end{equation}
+
+with cyclic indexing.
+Orientation normalization helps preserve fill behavior consistency.
+
+\section{Stroke mesh generation}
+
+A stroke of width $w$ can be approximated by offsetting segment points along local normals.
+If $\mathbf{t}$ is tangent direction, one normal form is:
+
+\begin{equation}
+\mathbf{n} = \frac{1}{\|\mathbf{t}\|}
+\begin{bmatrix}
+-t_y \\
+ t_x
+\end{bmatrix}.
+\label{eq:stroke_normal}
+\end{equation}
+
+Offset vertices become $p_i \pm \frac{w}{2}\mathbf{n}$.
+Segment strips are then stitched according to join/cap style policy.
+
+In scope for this thesis, the focus is a robust baseline for common joins/caps, not full stylistic parity of the SVG specification.
+
+\section{Data layout for rendering}
+
+After conversion, geometry is packed into contiguous arrays.
+Typical layouts include:
+
+\begin{itemize}
+\item position buffer (float),
+\item optional index buffer,
+\item style uniforms or compact per-vertex style data.
+\end{itemize}
+
+This stage affects both transfer cost and draw throughput.
+Even in 2D scenes, reducing duplication and preserving stable ordering improves practical performance behavior.
+
+\section{Failure classes and mitigation}
+
+\begin{table}[htbp]
+\centering
+\caption{Failure classes during conversion}
+\label{tab:conversion_failure_classes}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{4.3cm} >{\raggedright\arraybackslash}p{4.9cm}}
+\toprule
+\textbf{Class} & \textbf{Typical trigger} & \textbf{Mitigation} \\
+\midrule
+Parsing & malformed command/parameter stream & reject element and emit diagnostic \\
+Topology & invalid contour structure & cleanup attempt, otherwise skip fill path \\
+Numeric & NaN/overflow/underflow coordinates & normalization and finite-value checks \\
+Style & unsupported style combinations & deterministic default/fallback policy \\
+Render-boundary & geometry not compatible with backend assumptions & adapt layout or skip draw path \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This classification helps separate root causes and makes debugging more systematic.
+
+\section{Algorithmic execution outline}
+
+For a parsed path-like element $E$, a practical conversion routine can be summarized as:
+
+\begin{enumerate}
+\item decode command stream into geometric segments,
+\item flatten curves/arcs under configured tolerance,
+\item extract contours and normalize winding policy,
+\item triangulate fill geometry if enabled,
+\item build stroke geometry if enabled,
+\item validate generated buffers before render submission.
+\end{enumerate}
+
+This order is important.
+If style or topology checks are postponed too late, invalid geometry may already propagate into buffer generation.
+
+\subsection{Deterministic fallback strategy}
+
+When conversion fails for a contour, the system should apply deterministic fallback:
+reject non-convertible fill geometry, preserve still-valid stroke paths if possible, and emit diagnostics.
+This behavior is preferable to silent corruption because it keeps failure local and observable.
+
+\section{Compact cost perspective}
+
+Let $k$ be number of path commands and $n$ the number of vertices after flattening.
+A practical preprocessing estimate is:
+
+\begin{equation}
+T_{pre} \approx T_{parse}(k) + T_{flatten}(k) + T_{triangulate}(n) + T_{stroke}(n).
+\label{eq:compact_cost_model}
+\end{equation}
+
+This decomposition is useful for prioritizing optimization work.
+For many practical scenes, reducing unnecessary vertex growth during flattening has a larger impact than micro-optimizing draw submission code.
+Similarly, avoiding invalid contours early prevents wasted work in triangulation and buffer allocation stages.
+
+\subsection{Tolerance configuration and vertex growth}
+
+Flattening tolerance is one of the most sensitive parameters in the full pipeline.
+Very strict tolerance improves geometric fidelity but can increase vertex count significantly, which raises both conversion and rendering cost.
+Very relaxed tolerance lowers cost but can visibly distort curves.
+
+A practical control objective is to keep approximation error bounded while limiting vertex growth:
+
+\begin{equation}
+N_{out} \leq \gamma \cdot N_{base},
+\label{eq:vertex_growth_bound}
+\end{equation}
+
+where $N_{base}$ is the initial command-derived point count and $\gamma$ is a configured growth factor.
+This type of guard is useful in browser workflows because it avoids accidental resource spikes on dense or malformed input.
+
+\subsection{Preprocessing before triangulation}
+
+Before triangulation, conversion should apply a compact preprocessing pipeline:
+
+\begin{enumerate}
+\item remove duplicate adjacent points,
+\item collapse segments shorter than a minimum threshold,
+\item normalize winding orientation according to fill policy,
+\item split contours into independently valid rings when needed.
+\end{enumerate}
+
+These steps reduce geometric noise and improve downstream determinism.
+They also decouple topological cleanup from triangulation logic, which simplifies debugging and testing.
+
+\subsection{Diagnostics as a geometry-quality tool}
+
+Geometry conversion quality is often assessed only by final visual output.
+In practice, diagnostics are equally important.
+Useful diagnostics include rejected contour count, degenerate-segment count, fallback activations, and resulting vertex/index totals.
+
+For a thesis-scale system, these metrics serve two purposes:
+
+\begin{itemize}
+\item they expose conversion behavior under stress scenarios without requiring external profilers;
+\item they make regressions visible even when visual differences are subtle.
+\end{itemize}
+
+This approach supports disciplined iteration because algorithmic changes can be evaluated against stable, measurable signals.
+
+\section{Implications for \texttt{Svg2GPU}}
+
+The implemented project follows these principles:
+
+\begin{itemize}
+\item parser output is typed and deterministic,
+\item geometry conversion is isolated from XML parsing concerns,
+\item style normalization happens before render submission,
+\item conversion failures are handled explicitly,
+\item architecture remains open for stronger triangulation and backend evolution.
+\end{itemize}
+
+This is aligned with practical computational geometry guidance \cite{deberg_computational_geometry} and with real-world web graphics development practice \cite{mapbox_earcut}.
+
+\section{Implementation-oriented quality criteria}
+
+For conversion layers used in production-like contexts, correctness must be measured with explicit quality criteria.
+In \texttt{Svg2GPU}, the following criteria are considered essential:
+
+\begin{itemize}
+\item \textbf{topological consistency:} generated fill geometry should not produce unexpected overlaps for valid simple contours,
+\item \textbf{numeric safety:} output buffers must contain finite values only,
+\item \textbf{style coherence:} fill/stroke interpretation must match normalized style semantics,
+\item \textbf{deterministic output ordering:} equal input and configuration should produce equivalent geometry order.
+\end{itemize}
+
+These criteria are intentionally practical.
+They are easy to map to tests and diagnostic checks, and they align with the main risks observed in vector conversion systems.
+
+By adopting explicit criteria, geometry conversion becomes auditable rather than heuristic.
+This is important for long-term maintenance because regressions can be discussed in terms of violated properties, not only visual symptoms.
+
+\section{Chapter summary}
+
+This chapter established the geometry-processing strategy used by the project.
+The key result is a practical and robust conversion model: triangulation/stroke generation with deterministic validation and explicit fallback behavior.
+This model is sufficient for the implemented scope and provides a stable foundation for implementation and evaluation.
+
+The next chapter maps these decisions to concrete architecture and code-level organization in \texttt{Svg2GPU}.

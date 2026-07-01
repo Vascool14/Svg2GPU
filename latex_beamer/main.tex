@@ -1,0 +1,352 @@
+\documentclass[aspectratio=43]{beamer}
+\usetheme{CCNU}
+
+\usepackage{slashed}
+\usepackage{datetime}
+\usepackage{hyperref}
+\usepackage{cancel}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+\graphicspath{{../latex_docs/figures/}{../utils/screenshots/}}
+
+\def\Put(#1,#2)#3{\leavevmode\makebox(0,0){\put(#1,#2){#3}}}
+\def\mydate{\leavevmode\hbox{\the\year-\twodigits\month-\twodigits\day}}
+\def\twodigits#1{\ifnum#1<10 0\fi\the#1}
+\def\meetingname{Svg2GPU presentation}
+
+\title[Svg2GPU]{Svg2GPU: SVG to GPU rendering}
+\author[Andrei Vascul]{Andrei Vascul}
+\institute[UBB]{Faculty of Mathematics and Computer Science, Babes-Bolyai University}
+\date[\mydate]{\meetingname\\\today}
+\titlegraphic{}
+
+\tikzset{
+	stage/.style={rounded corners, draw=CCNUMaize!70, fill=CCNUMaize!10, thick, align=center, inner sep=6pt, text width=2.6cm},
+	compare/.style={rounded corners, draw=CCNUBlue!50, fill=CCNUBlue!6, thick, align=center, inner sep=6pt, text width=3.35cm},
+	arrow/.style={-Latex, very thick, draw=CCNUMaize},
+	smallarrow/.style={-Latex, thick, draw=CCNUBlue},
+}
+
+\begin{document}
+
+\titlepage
+
+\section{Introduction}
+
+\begin{frame}{Why this exists}
+\small
+\begin{columns}[T,onlytextwidth]
+	\column{0.52\textwidth}
+	\begin{itemize}
+		\item SVG is a great authoring format: readable, reusable, and semantic.
+		\item GPU pipelines want something stricter: triangles, buffers, and draw calls.
+		\item \texttt{Svg2GPU} sits in the middle and does the conversion work once.
+		\item The goal is practical control, not a full browser-engine rewrite.
+	\end{itemize}
+
+	\column{0.46\textwidth}
+	\centering
+	\begin{tikzpicture}[node distance=1.35cm]
+		\node[compare] (svg) {\textbf{SVG}\\paths, groups, styles};
+		\node[compare, right=2.25cm of svg] (gpu) {\textbf{GPU}\\buffers, triangles, draws};
+		\draw[arrow] (svg) -- node[above, font=\scriptsize]{convert} (gpu);
+	\end{tikzpicture}
+\end{columns}
+\vspace{0.4em}
+\begin{block}{In one line}
+SVG keeps the intent. GPU code wants the geometry.
+\end{block}
+\end{frame}
+
+\begin{frame}{SVG path basics}
+\small
+\begin{columns}[T,onlytextwidth]
+	\column{0.58\textwidth}
+	\begin{itemize}
+		\item Most of the hard work lives in the \texttt{d} attribute.
+		\item Commands can be absolute or relative.
+		\item \texttt{viewBox} and transforms decide where the shape lands.
+		\item Supported primitives stay focused: path, rect, circle, ellipse, line, polyline, polygon, and groups.
+	\end{itemize}
+
+	\column{0.40\textwidth}
+	\begin{block}{Path commands}
+	\centering
+	\texttt{M L H V C Q A Z}\\[0.35em]
+	\texttt{m l h v c q a z}\\[0.75em]
+	\footnotesize Curves and arcs are later flattened into points.
+	\end{block}
+\end{columns}
+\end{frame}
+
+\begin{frame}{WebGPU wants triangles}
+\small
+\begin{columns}[T,onlytextwidth]
+	\column{0.48\textwidth}
+	\begin{block}{SVG side}
+	\begin{itemize}
+		\item declarative scene description
+		\item inherited styles and transforms
+		\item easy to author, easy to read
+	\end{itemize}
+	\end{block}
+
+	\column{0.48\textwidth}
+	\begin{block}{WebGPU side}
+	\begin{itemize}
+		\item explicit buffers
+		\item vertex formats and indices
+		\item shader input and render passes
+	\end{itemize}
+	\end{block}
+\end{columns}
+
+\vspace{0.4em}
+\centering
+\begin{tikzpicture}[node distance=1.2cm]
+	\node[compare, text width=2.95cm] (svg) {SVG says \emph{what} to draw};
+	\node[compare, right=1.55cm of svg, text width=3.1cm] (gpu) {WebGPU says \emph{how} to draw it};
+	\draw[smallarrow] (svg) -- node[above, font=\scriptsize]{conversion layer} (gpu);
+\end{tikzpicture}
+\end{frame}
+
+\section{Pipeline}
+
+\begin{frame}{From SVG string to scene}
+\small
+\begin{center}
+\begin{tikzpicture}[node distance=0.95cm]
+	\node[stage, text width=2.45cm] (compile) {\texttt{Svg2GPU.compile()}\\entry point};
+	\node[stage, right=0.55cm of compile, text width=2.45cm] (parse) {\texttt{SVGParser + StyleResolver}\\typed SVG data};
+	\node[stage, right=0.55cm of parse, text width=2.45cm] (build) {\texttt{GeometryBuilder}\\fill / stroke batches};
+	\node[stage, right=0.55cm of build, text width=2.35cm] (render) {\texttt{WebGPURenderer}\\upload + draw};
+
+	\draw[arrow] (compile) -- (parse);
+	\draw[arrow] (parse) -- (build);
+	\draw[arrow] (build) -- (render);
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.5em}
+\begin{block}{Pipeline idea}
+Each stage does one job, and the next stage receives already-typed data.
+\end{block}
+\end{frame}
+
+\begin{frame}{SVGParser}
+\small
+\begin{columns}[T,onlytextwidth]
+	\column{0.55\textwidth}
+	\begin{itemize}
+		\item walks the XML tree and keeps supported elements
+		\item parses presentation attributes and inline \texttt{style}
+		\item resolves path \texttt{d} strings into typed commands
+		\item rejects missing mandatory data early
+	\end{itemize}
+
+	\column{0.43\textwidth}
+	\begin{block}{Supported set}
+	\centering
+	\texttt{path}\\
+	\texttt{rect}\\
+	\texttt{circle}\\
+	\texttt{ellipse}\\
+	\texttt{line}\\
+	\texttt{polyline}\\
+	\texttt{polygon}\\
+	\texttt{g}
+	\end{block}
+\end{columns}
+\vspace{0.3em}
+\begin{alertblock}{Boundary}
+The parser does not render. It only produces typed SVG data.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{PathNormalizer}
+\small
+\begin{columns}[T,onlytextwidth]
+	\column{0.52\textwidth}
+	\begin{itemize}
+		\item relative commands become absolute points
+		\item curves are flattened under a tolerance
+		\item open and closed contours stay explicit
+		\item transforms are applied before tessellation
+	\end{itemize}
+
+	\column{0.44\textwidth}
+	\begin{block}{Before}
+	\centering
+	\texttt{M0 0 l10 0 l0 10 z}
+	\end{block}
+
+	\begin{block}{After}
+	\centering
+	\texttt{[(0,0), (10,0), (10,10), (0,0)]}
+	\end{block}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Color and style normalization}
+\small
+\begin{columns}[T,onlytextwidth]
+	\column{0.52\textwidth}
+	\begin{itemize}
+		\item color input can be HEX, RGB/A, HSL/A, named colors, \texttt{transparent}, or \texttt{none}
+		\item WebGPU uses floats from \texttt{0} to \texttt{1}, so conversion happens once
+		\item opacity is merged consistently before geometry generation
+		\item missing style fields fall back to defaults
+	\end{itemize}
+
+	\column{0.46\textwidth}
+	\centering
+	{\scriptsize
+	\begin{tabular}{|l|l|}
+	\hline
+	\textbf{Input} & \textbf{Normalized RGBA} \\
+	\hline
+	\texttt{\#00FF33} & \texttt{[0,1,0.2,1]} \\
+	\hline
+	\texttt{rgba(...)} & \texttt{[1,0,0.5,0.5]} \\
+	\hline
+	\texttt{hsl(...)} & \texttt{[0,1,0,1]} \\
+	\hline
+	\texttt{none} & \texttt{[0,0,0,0]} \\
+	\hline
+	\end{tabular}
+	}
+\end{columns}
+\vspace{0.3em}
+\begin{block}{Why this matters}
+Boring renderer code is good renderer code.
+\end{block}
+\end{frame}
+
+\begin{frame}{Tessellation and GeometryBuilder}
+\small
+\begin{columns}[T,onlytextwidth]
+	\column{0.54\textwidth}
+	\begin{itemize}
+		\item fills become triangles via earcut
+		\item strokes become quads with joins and caps
+		\item rects, circles, ellipses, polygons, polylines, and lines all funnel into the same geometry path
+		\item output is \texttt{GeometryBatch[]} plus stats and diagnostics
+	\end{itemize}
+
+	\column{0.42\textwidth}
+	\begin{block}{Fill}
+	\centering
+	contour \(\rightarrow\) triangles
+	\end{block}
+
+	\begin{block}{Stroke}
+	\centering
+	centerline \(\rightarrow\) quads + joins + caps
+	\end{block}
+\end{columns}
+\end{frame}
+
+\section{Rendering}
+
+\begin{frame}{WebGPURenderer}
+\small
+\begin{columns}[T,onlytextwidth]
+	\column{0.53\textwidth}
+	\begin{itemize}
+		\item creates adapter, device, canvas context, and pipeline
+		\item uploads vertex and index buffers per batch
+		\item maps the SVG \texttt{viewBox} to clip space using \texttt{fit}
+		\item supports resize, MSAA, background color, and cleanup
+	\end{itemize}
+
+	\column{0.43\textwidth}
+	\centering
+	\begin{tikzpicture}[node distance=0.85cm]
+		\node[stage, text width=2.2cm] (scene) {scene};
+		\node[stage, right=0.55cm of scene, text width=2.3cm] (buffers) {vertex / index\\buffers};
+		\node[stage, right=0.55cm of buffers, text width=2.15cm] (pipe) {render\\pass};
+		\node[stage, right=0.55cm of pipe, text width=1.95cm] (frame) {frame};
+		\draw[arrow] (scene) -- (buffers);
+		\draw[arrow] (buffers) -- (pipe);
+		\draw[arrow] (pipe) -- (frame);
+	\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Results, demo, and quick start}
+\small
+\begin{columns}[T,onlytextwidth]
+	\column{0.50\textwidth}
+	\begin{block}{Quick start}
+	\begin{itemize}
+		\item \texttt{npm install svg2gpu}
+		\item \texttt{Svg2GPU.compile(svg)} for scene output without drawing
+		\item docs: \url{http://localhost:5174/docs}
+		\item API: \url{http://localhost:5174/typedoc/classes/Svg2GPU.html}
+	\end{itemize}
+	\end{block}
+
+	\begin{block}{Why it helps}
+	It is the fastest route from a repo clone to a usable preview.
+	\end{block}
+
+	\column{0.47\textwidth}
+	\centering
+	\includegraphics[width=\linewidth]{../utils/screenshots/Typedoc.png}
+\end{columns}
+\end{frame}
+
+\section{Evaluation}
+
+\begin{frame}{Evaluation and limits}
+\small
+\begin{columns}[T,onlytextwidth]
+	\column{0.52\textwidth}
+	\centering
+	\includegraphics[width=\linewidth]{../utils/screenshots/TigerSVG.png}
+
+	\column{0.44\textwidth}
+	\begin{itemize}
+		\item simple scenes behave predictably
+		\item large SVGs are where the tradeoffs show up
+		\item antialiasing is still the hardest part to make perfect
+		\item scaling can still favor native SVG
+		\item text and gradients are not in the stable path yet
+	\end{itemize}
+\end{columns}
+\vspace{0.3em}
+\begin{alertblock}{Takeaway}
+The hard parts are visible, which is better than hiding them.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Conclusion and future work}
+\small
+\begin{itemize}
+	\item \texttt{Svg2GPU} makes the SVG \(\rightarrow\) GPU boundary explicit and testable.
+	\item The current version is useful where control matters more than perfect SVG parity.
+	\item Next steps: broader SVG coverage, stronger contour handling, and cleaner backend abstraction.
+	\item Longer term: better rendering quality without losing the current simplicity.
+\end{itemize}
+
+\vspace{0.4em}
+\centering
+\begin{tikzpicture}[node distance=0.85cm]
+	\node[compare, text width=2.9cm] (a) {more SVG coverage};
+	\node[compare, right=0.9cm of a, text width=2.95cm] (b) {better geometry quality};
+	\node[compare, right=0.9cm of b, text width=2.85cm] (c) {cleaner backend split};
+	\draw[smallarrow] (a) -- (b);
+	\draw[smallarrow] (b) -- (c);
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}[plain,t]
+\vspace{0.9cm}
+\centering
+{\Huge Questions?}\\[1.0cm]
+\includegraphics[width=0.72\textwidth]{logofooter_csubb}
+\end{frame}
+
+\end{document}

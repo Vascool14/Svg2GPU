@@ -4,6 +4,10 @@ import { fileURLToPath } from "node:url";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const outDir = resolve(scriptDir, "../public/typedoc");
+const githubRepoUrl = "https://github.com/vascool14/svg2gpu";
+const githubLicenseUrl = `${githubRepoUrl}/blob/main/LICENSE`;
+const githubIssueUrl = `${githubRepoUrl}/issues/new?labels=bug`;
+const githubFeatureUrl = `${githubRepoUrl}/issues/new?labels=enhancement`;
 
 const customHeader = `
 <header id="navbar">
@@ -55,7 +59,7 @@ const customHeader = `
       </a>
       <div class="separator"></div>
       <a 
-         href="https://github.com/vascool14/svg2gpu" 
+         href="${githubRepoUrl}" 
          target="_blank" rel="noopener noreferrer" aria-label="github"
       >
          <svg xmlns="http://www.w3.org/2000/svg" style="height:1.5rem;margin-bottom:-1px;" viewBox="0 0 24 24" fill="currentColor">
@@ -106,22 +110,24 @@ const customFooter = `
    <div class="gridItem">
       <h5>Resources</h5>
       <a href="/playground"><p>Playground</p></a>
-      <a href="/examples"><p>Examples</p></a>
       <a href="/docs"><p>Docs</p></a>
       <a href="/typedoc"><p>TypeDoc</p></a>
    </div>
    <div class="gridItem">
       <h5>Misc</h5>
-      <a href="/about"><p>About me</p></a>
-      <a href="/license"><p>License</p></a>
-      <a href="/contribution-guide"><p>Contribution Guide</p></a>
+      <a href="${githubLicenseUrl}" target="_blank" rel="noopener noreferrer"><p>License</p></a>
+      <a href="${githubRepoUrl}" target="_blank" rel="noopener noreferrer"><p>Contribute</p></a>
    </div>
    <div class="gridItem">
       <h5>Contact</h5>
-      <a href="/contact"><p>Where to Start?</p></a>
-      <a href="/contact/issue"><p>Report an Issue</p></a>
-      <a href="/contact/feature"><p>Request a Feature</p></a>
-      <button>Contact</button>
+      <a href="${githubIssueUrl}" target="_blank" rel="noopener noreferrer"><p>Report an Issue</p></a>
+      <a href="${githubFeatureUrl}" target="_blank" rel="noopener noreferrer"><p>Request a Feature</p></a>
+      <a
+         href="${githubRepoUrl}"
+         target="_blank"
+         rel="noopener noreferrer"
+         style="background:var(--text);color:var(--color-background);border-radius:4px;padding:0.5rem 1.25rem;margin-top:1rem;margin-right:auto;font-size:1rem;text-decoration:none;"
+      >Contact</a>
    </div>
 </footer>
 `;

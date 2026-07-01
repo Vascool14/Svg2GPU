@@ -1,0 +1,12 @@
+\chapter*{Abstract}
+\phantomsection
+\addcontentsline{toc}{chapter}{Abstract}
+
+This thesis presents \texttt{Svg2GPU}, a software project that bridges declarative SVG graphics and GPU-oriented rendering in the browser.
+The core objective is to transform SVG content into a typed, robust, and render-ready intermediate representation that can be processed efficiently by modern browser graphics pipelines.
+The work combines theoretical foundations (vector graphics, geometry processing, and browser GPU architectures) with practical implementation details, including parser design, style normalization, geometry conversion strategies, and functional validation.
+
+The project is developed as both a reusable technical prototype and an engineering study.
+Its practical contribution is a library and client workflow for parsing supported SVG primitives, normalizing visual style information, preparing geometry for rendering, and inspecting the result through an interactive playground.
+The thesis also defines and evaluates two executable functionalities: F1, the SVG path parsing pipeline, and F2, the style and color normalization pipeline.
+Together, these functionalities demonstrate the minimum reliable conversion boundary required before more advanced rendering and optimization work can be developed.

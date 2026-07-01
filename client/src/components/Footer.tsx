@@ -1,6 +1,10 @@
-import Button from "./Button";
 import Logo from "./icons/Logo";
 import { Link } from "react-router-dom";
+
+const GITHUB_REPO_URL = "https://github.com/vascool14/svg2gpu";
+const GITHUB_LICENSE_URL = `${GITHUB_REPO_URL}/blob/main/LICENSE`;
+const GITHUB_ISSUE_URL = `${GITHUB_REPO_URL}/issues/new?labels=bug`;
+const GITHUB_FEATURE_URL = `${GITHUB_REPO_URL}/issues/new?labels=enhancement`;
 
 export default function Footer() {
     return (
@@ -26,27 +30,29 @@ export default function Footer() {
             </div>
             <div className="flex flex-col text-left gap-2">
                 <h5 className="mb-2!">Misc</h5>
-                <Link to="/about">
-                    <p className="pLink">About me</p>
-                </Link>
-                <Link to="/license">
+                <a href={GITHUB_LICENSE_URL} target="_blank" rel="noopener noreferrer">
                     <p className="pLink">License</p>
-                </Link>
-                <Link to="/contribute">
+                </a>
+                <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
                     <p className="pLink">Contribute</p>
-                </Link>
+                </a>
             </div>
             <div className="flex flex-col text-left gap-2">
                 <h5 className="mb-2!">Contact</h5>
-                <Link to="/report-issue">
+                <a href={GITHUB_ISSUE_URL} target="_blank" rel="noopener noreferrer">
                     <p className="pLink">Report an Issue</p>
-                </Link>
-                <Link to="/request-feature">
+                </a>
+                <a href={GITHUB_FEATURE_URL} target="_blank" rel="noopener noreferrer">
                     <p className="pLink">Request a Feature</p>
-                </Link>
-                <Link to="/contact">
-                    <Button>Contact</Button>
-                </Link>
+                </a>
+                <a
+                    href={GITHUB_REPO_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-(--text) text-(--bg) rounded-md px-4 py-2 text-lg mt-4 mr-auto"
+                >
+                    Contact
+                </a>
             </div>
         </footer>
     );

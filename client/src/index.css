@@ -53,7 +53,7 @@ html,
 }
 
 a {
-    color: red;
+    /* color: red; */
 }
 .pLink {
     cursor: pointer;

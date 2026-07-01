@@ -23,7 +23,7 @@ export class Svg2GPU {
 		this.ready = this.initialize();
 	}
 
-	static compile(svgString: string, options: Svg2GPUCompileOptions = {}): GpuScene {
+	static compile(svgString: string, options: Svg2GPUCompileOptions = {}): GpuScene  {
 		const document = SVGParser.parseDocument(svgString);
 		const resolvedScene = StyleResolver.resolve(document.children, document.metadata);
 		return GeometryBuilder.build(resolvedScene, {

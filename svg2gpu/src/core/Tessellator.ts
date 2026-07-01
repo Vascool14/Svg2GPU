@@ -134,9 +134,12 @@ export class Tessellator {
 		contours: NormalizedContour[],
 		fillRule: TFillRule
 	): ContourGroup[] {
-		const closed = contours.filter(
-			(contour) => contour.closed && this.stripClosingPoint(contour.points).length >= 3
-		);
+		const closed = contours
+			.filter((contour) => this.stripClosingPoint(contour.points).length >= 3)
+			.map((contour) => ({
+				...contour,
+				closed: true,
+			}));
 		const groups: ContourGroup[] = [];
 
 		for (const contour of closed) {
@@ -301,7 +304,7 @@ export class Tessellator {
 		return points;
 	}
 
-	private static signedArea(points: Point[]): number {
+	private static signedArea(points: Point[]): number  {
 		const stripped = this.stripClosingPoint(points);
 		let area = 0;
 		for (let i = 0; i < stripped.length; i++) {

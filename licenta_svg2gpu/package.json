@@ -1,0 +1,58 @@
+{
+	"name": "svg2gpu",
+	"version": "1.0.6",
+	"main": "lib/svg2gpu.min.js",
+	"module": "lib/svg2gpu.mjs",
+	"types": "lib/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./lib/svg2gpu.mjs",
+			"require": "./lib/svg2gpu.min.js",
+			"types": "./lib/index.d.ts"
+		}
+	},
+	"type": "commonjs",
+	"files": [
+		"lib",
+		"README.md",
+		"LICENSE"
+	],
+	"scripts": {
+		"generate-index": "node scripts/generate-index.js",
+		"build:types": "tsc --emitDeclarationOnly",
+		"build:cjs": "webpack --config webpack.config.js",
+		"build:esm": "webpack --config webpack.config.mjs.js",
+		"build": "npm run clean && npm run generate-index && webpack --mode production",
+		"clean": "rm -rf lib && rm -rf dist",
+		"test": "npx jest",
+		"test:f1": "npx jest --runInBand tests/f1/f1-functionality.test.ts",
+		"publish-npm": "npm run build && npm publish",
+		"visual-test": "TODO",
+		"format": "prettier --write \"**/*.{ts,js,json}\"",
+		"typedoc": "typedoc"
+	},
+	"keywords": [],
+	"author": "Vascul Andrei - andreivascul2002@gmail.com",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/jest": "^29.5.14",
+		"@types/node": "^22.15.19",
+		"@webgpu/types": "^0.1.70",
+		"jest-environment-jsdom": "^30.0.0",
+		"npm-dts-webpack-plugin": "^1.3.13",
+		"svg-path-parser": "^1.1.0",
+		"ts-jest": "^29.4.0",
+		"ts-loader": "^9.5.1",
+		"ts-node": "^10.9.2",
+		"typedoc": "^0.28.17",
+		"typescript": "^5.8.3",
+		"webpack": "^5.91.0",
+		"webpack-cli": "^5.1.4",
+		"webpack-dev-server": "^4.15.1",
+		"xmldom": "^0.6.0"
+	},
+	"dependencies": {
+		"earcut": "^2.2.4",
+		"svgpath": "^2.6.0"
+	}
+}

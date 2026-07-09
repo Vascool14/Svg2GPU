@@ -216,7 +216,7 @@ export class PathNormalizer {
 		return result;
 	}
 
-	private static flattenCubic(
+	private static flattenCubic( 
 		p0: Point,
 		p1: Point,
 		p2: Point,
@@ -247,7 +247,7 @@ export class PathNormalizer {
 		];
 	}
 
-	private static flattenQuadratic(
+	private static flattenQuadratic( 
 		p0: Point,
 		p1: Point,
 		p2: Point,

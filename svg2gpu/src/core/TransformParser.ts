@@ -7,7 +7,7 @@ export class TransformParser {
 		return [...IDENTITY] as Matrix2D;
 	}
 
-	static multiply(left: Matrix2D, right: Matrix2D): Matrix2D {
+	static multiply(left: Matrix2D, right: Matrix2D): Matrix2D { 
 		const [a1, b1, c1, d1, e1, f1] = left;
 		const [a2, b2, c2, d2, e2, f2] = right;
 

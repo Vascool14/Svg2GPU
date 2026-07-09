@@ -84,7 +84,7 @@ export class Tessellator {
 
 		if (vertices.length === 0) return [];
 
-		return [
+		return [ 
 			{
 				kind: "stroke",
 				vertices: new Float32Array(vertices),
@@ -169,7 +169,7 @@ export class Tessellator {
 	): void {
 		const direction = this.normalize([end[0] - start[0], end[1] - start[1]]);
 		if (!direction) return;
-		const normal: Point = [-direction[1] * halfWidth, direction[0] * halfWidth];
+		const normal: Point = [-direction[1] * halfWidth, direction[0] * halfWidth]
 
 		const a: Point = [start[0] + normal[0], start[1] + normal[1]];
 		const b: Point = [start[0] - normal[0], start[1] - normal[1]];
@@ -304,7 +304,14 @@ export class Tessellator {
 		return points;
 	}
 
-	private static signedArea(points: Point[]): number  {
+	/**
+	 * Calculates the signed area of a polygon using the shoelace formula.
+	 *
+	 * The sign of the returned area indicates the winding direction of the points:
+	 * a positive value usually means counterclockwise order, while a negative value
+	 * usually means clockwise order.
+	 */
+	private static signedArea(points: Point[]): number { 
 		const stripped = this.stripClosingPoint(points);
 		let area = 0;
 		for (let i = 0; i < stripped.length; i++) {

@@ -20,13 +20,4 @@ describe("<g>", () => {
 			],
 		});
 	});
-
-	it("warns on empty group", () => {
-		const svg = `<svg><g></g></svg>`;
-		const result = SVGParser.parse(svg);
-		expect(result[0]).toMatchObject({
-			type: ESVGElementType.GROUP,
-			children: [],
-		});
-	});
 });

@@ -312,7 +312,7 @@ export class WebGPURenderer {
 		this.device.queue.writeBuffer(this.uniformBuffer, 0, values);
 	}
 
-	private computeSvgToClipMatrix(viewBox: SVGViewBox): Float32Array {
+	private computeSvgToClipMatrix(viewBox: SVGViewBox): Float32Array { 
 		const canvasWidth = Math.max(1, this.canvas.width);
 		const canvasHeight = Math.max(1, this.canvas.height);
 		let scaleX = canvasWidth / viewBox.width;

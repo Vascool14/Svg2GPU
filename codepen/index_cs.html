@@ -31,7 +31,7 @@
 
     <script src="../svg2gpu/lib/svg2gpu.min.js"></script>
     <script>
-        const { Svg2GPU } = window.svg2gpu;
+        const { Svg2GPU } = window.svg2gpu; // or `import { Svg2GPU } from "svg2gpu"` if using ES5 modules
 
         const svg = `<svg viewBox="0 0 321 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M164.823 56.5213H162.561L156.411 56.5125L153.358 63.5559H146.294L157.115 38.2539H164.16L159.061 50.1982L175.794 38.651C176.169 38.3927 176.612 38.2539 177.067 38.2539H187.659L168.911 51.2945L177.371 63.5568H169.632L164.823 56.5222" fill="white"/>
@@ -57,7 +57,6 @@
             // background: [0, 0, 0, 1],
             // fit: "contain",
         });
-
 
         // (Not necessary) Add this to also display the original SVG for comparison
         document.getElementById("svg-container").innerHTML = svg;

@@ -24,9 +24,9 @@ export default function Footer() {
                 <Link to="/docs">
                     <p className="pLink">Docs</p>
                 </Link>
-                <Link to="/typedoc">
+                <a href={`${import.meta.env.BASE_URL}typedoc/`}>
                     <p className="pLink">TypeDoc</p>
-                </Link>
+                </a>
             </div>
             <div className="flex flex-col text-left gap-2">
                 <h5 className="mb-2!">Misc</h5>

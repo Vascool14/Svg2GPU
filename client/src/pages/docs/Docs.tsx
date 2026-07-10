@@ -1,4 +1,4 @@
-const TYPEDOC_BASE = "http://localhost:5173/typedoc";
+const TYPEDOC_BASE = `${import.meta.env.BASE_URL}typedoc`;
 
 const CONTENTS = [
     ["overview", "1. What svg2gpu is"],

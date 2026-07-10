@@ -1,6 +1,7 @@
 {
 	"name": "svg2gpu",
 	"version": "1.0.6",
+	"description": "Parse SVG markup into GPU-ready geometry and render it with WebGPU.",
 	"main": "lib/svg2gpu.min.js",
 	"module": "lib/svg2gpu.mjs",
 	"types": "lib/index.d.ts",
@@ -24,16 +25,30 @@
 		"build:esm": "webpack --config webpack.config.mjs.js",
 		"build": "npm run clean && npm run generate-index && webpack --mode production",
 		"clean": "rm -rf lib && rm -rf dist",
-		"test": "npx jest",
-		"test:f1": "npx jest --runInBand tests/f1/f1-functionality.test.ts",
-		"publish-npm": "npm run build && npm publish",
+		"test": "jest",
+		"prepublishOnly": "npm test && npm run build",
 		"visual-test": "TODO",
 		"format": "prettier --write \"**/*.{ts,js,json}\"",
 		"typedoc": "typedoc"
 	},
-	"keywords": [],
-	"author": "Vascul Andrei - andreivascul2002@gmail.com",
-	"license": "ISC",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Vascool14/Svg2GPU.git",
+		"directory": "svg2gpu"
+	},
+	"bugs": {
+		"url": "https://github.com/Vascool14/Svg2GPU/issues"
+	},
+	"homepage": "https://github.com/Vascool14/Svg2GPU#readme",
+	"keywords": [
+		"svg",
+		"webgpu",
+		"gpu",
+		"graphics",
+		"tessellation"
+	],
+	"author": "Vascul Andrei (andreivascul98@gmail.com)",
+	"license": "MIT",
 	"devDependencies": {
 		"@types/jest": "^29.5.14",
 		"@types/node": "^22.15.19",

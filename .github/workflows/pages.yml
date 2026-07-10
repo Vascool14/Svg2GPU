@@ -1,0 +1,63 @@
+name: Deploy client to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Build client
+        run: npm run build
+        working-directory: client
+        env:
+          GITHUB_PAGES: "true"
+
+      - name: Prepare Pages routes
+        run: |
+          cp client/dist/index.html client/dist/404.html
+          find client/dist/typedoc -name '*.html' -exec sed -i \
+            -e 's|href="/"|href="/Svg2GPU/"|g' \
+            -e 's|href="/playground"|href="/Svg2GPU/playground"|g' \
+            -e 's|href="/docs"|href="/Svg2GPU/docs"|g' \
+            -e 's|href="/typedoc"|href="/Svg2GPU/typedoc"|g' {} +
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: client/dist
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

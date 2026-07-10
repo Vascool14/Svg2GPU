@@ -199,6 +199,13 @@ declare module 'svg2gpu/core/Tessellator' {
       private static addQuad;
       private static addTriangle;
       private static stripClosingPoint;
+      /**
+       * Calculates the signed area of a polygon using the shoelace formula.
+       *
+       * The sign of the returned area indicates the winding direction of the points:
+       * a positive value usually means counterclockwise order, while a negative value
+       * usually means clockwise order.
+       */
       private static signedArea;
       private static pointInPolygon;
       private static normalize;

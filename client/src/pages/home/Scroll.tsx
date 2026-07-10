@@ -10,18 +10,6 @@ export const ContainerScroll = ({
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({ target: containerRef });
-    const [isMobile, setIsMobile] = React.useState(false);
-
-    React.useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth <= 768);
-        };
-        checkMobile();
-        window.addEventListener("resize", checkMobile);
-        return () => {
-            window.removeEventListener("resize", checkMobile);
-        };
-    }, []);
 
     const scaleDimensions = () => {
         return [1.2, 1.08];

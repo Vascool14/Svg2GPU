@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
-import { lazy } from "react";
+import { lazy, useEffect } from "react";
 import Home from "./pages/home/Home";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -18,6 +18,14 @@ export default function App() {
 function AppShell() {
     const location = useLocation();
     const hideFooter = location.pathname.startsWith("/playground");
+
+    useEffect(() => {
+        document.title = location.pathname.startsWith("/playground")
+            ? "Svg2GPU | Playground"
+            : location.pathname.startsWith("/docs")
+                ? "Svg2GPU | Documentation"
+                : "Svg2GPU | SVGs at GPU speeds";
+    }, [location.pathname]);
 
     return (
         <>

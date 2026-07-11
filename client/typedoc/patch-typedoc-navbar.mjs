@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const outDir = resolve(scriptDir, "../public/typedoc");
-const githubRepoUrl = "https://github.com/vascool14/svg2gpu";
+const githubRepoUrl = "https://github.com/Vascool14/Svg2GPU";
 const githubLicenseUrl = `${githubRepoUrl}/blob/main/LICENSE`;
 const githubIssueUrl = `${githubRepoUrl}/issues/new?labels=bug`;
 const githubFeatureUrl = `${githubRepoUrl}/issues/new?labels=enhancement`;
@@ -42,9 +42,9 @@ const customHeader = `
    <a class="navItem mobileHidden" href="/typedoc">Typedoc</a>
 
    <div class="iconWrapper">
-      <a 
+      <a
          class="mobileHidden"
-         href="https://npmjs.com/package/svg2gpu" 
+         href="https://www.npmjs.com/package/svg2gpu"
          target="_blank" rel="noopener noreferrer" aria-label="npm"
       >
          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" style="width:3rem;margin-bottom:-5px;" fill="currentColor">
@@ -58,8 +58,8 @@ const customHeader = `
          </svg>
       </a>
       <div class="separator"></div>
-      <a 
-         href="${githubRepoUrl}" 
+      <a
+         href="${githubRepoUrl}"
          target="_blank" rel="noopener noreferrer" aria-label="github"
       >
          <svg xmlns="http://www.w3.org/2000/svg" style="height:1.5rem;margin-bottom:-1px;" viewBox="0 0 24 24" fill="currentColor">

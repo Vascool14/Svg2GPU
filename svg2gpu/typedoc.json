@@ -1,11 +1,11 @@
 {
 	"entryPoints": ["src"],
 	"out": "../client/public/typedoc",
-	"name": "svg2GPU API Docs",
-	"includeVersion": true,
+	"name": "Typedoc API Docs",
+	"includeVersion": false,
 	"readme": "README.md",
 	"customCss": "../client/typedoc/typedoc.css",
-	"titleLink": "https://www.svg2gpu.com",
+	"titleLink": "https://vascool14.github.io/Svg2GPU/",
 	"categorizeByGroup": false,
 	"sort": ["kind"],
 	"theme": "default",
@@ -15,9 +15,11 @@
 	"excludeProtected": false,
 	"disableSources": true,
 	"navigationLinks": {
-		"Examples": "https://www.svg2gpu.com/examples",
-		"Docs": "https://www.svg2gpu.com/docs",
+		"Examples": "https://vascool14.github.io/Svg2GPU/playground",
+		"Docs": "https://vascool14.github.io/Svg2GPU/docs",
+		"Basic CodePen": "https://codepen.io/vasculandrei/pen/emgMBRZ?editors=1010",
+		"Romania map": "https://codepen.io/vasculandrei/pen/XJpENaj?editors=1010",
 		"NPM": "https://www.npmjs.com/package/svg2gpu",
-		"GitHub": "https://github.com/Vascool14/svg2gpu"
+		"GitHub": "https://github.com/Vascool14/Svg2GPU"
 	}
 }

@@ -1,17 +1,6 @@
-const TYPEDOC_BASE = `${import.meta.env.BASE_URL}typedoc`;
+import { LINKS } from "../../links";
 
-const CONTENTS = [
-    ["overview", "1. What svg2gpu is"],
-    ["install", "2. Install and import"],
-    ["first-render", "3. First render"],
-    ["lifecycle", "4. Renderer lifecycle"],
-    ["compile", "5. Compile without drawing"],
-    ["scene", "6. Scene data"],
-    ["options", "7. Options that matter"],
-    ["transforms", "8. Transforms and styles"],
-    ["demo", "9. Demo patterns"],
-    ["limits", "10. Limits and next steps"],
-] as const;
+const TYPEDOC_BASE = `${import.meta.env.BASE_URL}typedoc`;
 
 function CodeBlock({ children }: { children: string }) {
     return (
@@ -21,13 +10,13 @@ function CodeBlock({ children }: { children: string }) {
     );
 }
 
-function DocLink({ href, children }: { href: string; children: React.ReactNode }) {
+function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
     return (
         <a
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[var(--primary)] underline-offset-4 hover:underline"
+            className="text-[var(--primary)] underline underline-offset-4"
         >
             {children}
         </a>
@@ -36,21 +25,16 @@ function DocLink({ href, children }: { href: string; children: React.ReactNode }
 
 function Section({
     id,
-    eyebrow,
     title,
     children,
 }: {
     id: string;
-    eyebrow: string;
     title: string;
     children: React.ReactNode;
 }) {
     return (
         <section id={id} className="scroll-mt-28 border-t py-12 first:border-t-0 first:pt-0">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--primary)]">
-                {eyebrow}
-            </p>
-            <h2 className="mb-5 text-3xl font-semibold tracking-normal text-[var(--text)]">
+            <h2 className="mb-6 text-3xl font-semibold tracking-normal text-[var(--text)]">
                 {title}
             </h2>
             <div className="grid gap-5 text-[var(--text-thin)]">{children}</div>
@@ -58,329 +42,242 @@ function Section({
     );
 }
 
+function CodePen({ id, title, href }: { id: string; title: string; href: string }) {
+    return (
+        <div className="overflow-hidden rounded-md border bg-[#111]">
+            <iframe
+                title={title}
+                src={`https://codepen.io/vasculandrei/embed/${id}?default-tab=html%2Cresult&theme-id=dark`}
+                className="h-[36rem] w-full border-0"
+                loading="lazy"
+                allowFullScreen
+            />
+            <p className="border-t px-4 py-3 text-sm">
+                <ExternalLink href={href}>Open {title} on CodePen</ExternalLink>
+            </p>
+        </div>
+    );
+}
+
+const options = [
+    ["svg", "string", "required", "The complete SVG markup to parse and render."],
+    [
+        "canvas",
+        "HTMLCanvasElement",
+        "created for you",
+        "Render into an existing canvas instead of appending one to the root element.",
+    ],
+    ["antialias", "boolean", "true", "Enables multisample antialiasing for smoother edges."],
+    [
+        "background",
+        "[r, g, b, a]",
+        "[1, 1, 1, 0]",
+        "Canvas clear color. Every component is a number from 0 to 1.",
+    ],
+    [
+        "fit",
+        '"contain" | "cover" | "stretch" | "none"',
+        '"contain"',
+        "Controls how the SVG viewBox maps into the canvas.",
+    ],
+    [
+        "dpr",
+        "number",
+        "devicePixelRatio",
+        "Controls the canvas resolution. Lower it to trade sharpness for less GPU work.",
+    ],
+    [
+        "flattenTolerance",
+        "number",
+        "0.25",
+        "Controls curve approximation. Smaller values are smoother and create more geometry.",
+    ],
+] as const;
+
 export default function Docs() {
     return (
         <main>
-            <div className="grid gap-10 lg:grid-cols-[18rem_minmax(0,1fr)]">
-                <aside className="lg:sticky lg:top-[calc(var(--nav-height)+1.25rem)] lg:h-[calc(100dvh-var(--nav-height)-2.5rem)] lg:overflow-auto">
-                    <div className="border bg-[#0d0f12] p-4">
-                        <h1 className="mb-3 text-xl font-semibold tracking-normal text-[var(--text)]">
-                            What&apos;s in this content
-                        </h1>
-                        <nav aria-label="Docs contents" className="grid gap-1">
-                            {CONTENTS.map(([id, label]) => (
-                                <a
-                                    key={id}
-                                    href={`#${id}`}
-                                    className="rounded-md px-2 py-1.5 text-sm text-[var(--text-thin)] transition-colors hover:bg-white/5 hover:text-[var(--text)]"
-                                >
-                                    {label}
-                                </a>
-                            ))}
-                        </nav>
-                        <div className="mt-5 border-t pt-4 text-sm leading-6 text-[var(--text-thin)]">
-                            API reference:
-                            <div className="mt-2 grid gap-1">
-                                <DocLink href={`${TYPEDOC_BASE}/classes/Svg2GPU.html`}>
-                                    Svg2GPU
-                                </DocLink>
-                                <DocLink href={`${TYPEDOC_BASE}/classes/WebGPURenderer.html`}>
-                                    WebGPURenderer
-                                </DocLink>
-                                <DocLink href={`${TYPEDOC_BASE}/classes/TransformParser.html`}>
-                                    TransformParser
-                                </DocLink>
-                                <DocLink href={`${TYPEDOC_BASE}/types/GpuScene.html`}>
-                                    GpuScene
-                                </DocLink>
-                            </div>
-                        </div>
+            <article className="w-full">
+                <header className="mb-14 max-w-4xl">
+                    <p className="mb-3 font-mono text-sm text-[var(--primary)]">svg2gpu / guide</p>
+                    <h1 className="mb-5 text-4xl font-semibold tracking-normal text-[var(--text)]">
+                        Get an SVG on the GPU.
+                    </h1>
+                    <p className="max-w-3xl text-lg leading-8 text-[var(--text-thin)]">
+                        Install the package, give it an SVG string and a place to draw, then wait
+                        for WebGPU to initialize. Start with the example that matches your project.
+                    </p>
+                    <div className="mt-7 flex flex-wrap gap-3 text-sm">
+                        <ExternalLink href={LINKS.npm}>npm package</ExternalLink>
+                        <ExternalLink href={LINKS.playground}>playground</ExternalLink>
+                        <ExternalLink href={LINKS.api}>API reference</ExternalLink>
+                        <ExternalLink href={LINKS.github}>GitHub</ExternalLink>
                     </div>
-                </aside>
+                </header>
 
-                <article className="min-w-0">
-                    <header className="mb-12 max-w-4xl">
-                        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--primary)]">
-                            svg2gpu guide
-                        </p>
-                        <h1 className="mb-5 text-4xl font-semibold tracking-normal text-[var(--text)]">
-                            Render SVG through WebGPU, inspect the generated scene, and keep control
-                            of the rendering lifecycle.
-                        </h1>
-                        <p className="max-w-3xl text-lg leading-8 text-[var(--text-thin)]">
-                            This guide follows the library as it exists in the source and demo: SVG
-                            strings are parsed, resolved, converted to GPU geometry, then submitted
-                            by a WebGPU renderer. Use the quick wrapper for application code, and use
-                            the compiler output when you need diagnostics, stats, or tests.
-                        </p>
-                    </header>
+                <Section id="install" title="Install">
+                    <CodeBlock>npm install svg2gpu</CodeBlock>
+                    <p className="leading-8">
+                        Rendering needs a browser with WebGPU. Parsing and compiling SVG geometry
+                        can be used separately through <code>Svg2GPU.compile</code>.
+                    </p>
+                </Section>
 
-                    <Section id="overview" eyebrow="Page 1" title="What svg2gpu is">
-                        <p className="leading-8">
-                            <code>svg2gpu</code> is a small SVG-to-GPU pipeline. The public
-                            convenience class is{" "}
-                            <DocLink href={`${TYPEDOC_BASE}/classes/Svg2GPU.html`}>Svg2GPU</DocLink>.
-                            It takes an SVG string, builds a renderable scene, creates a WebGPU canvas
-                            renderer, uploads buffers, and draws the result.
-                        </p>
-                        <p className="leading-8">
-                            Internally, the path is intentionally direct:{" "}
-                            <code>SVGParser.parseDocument</code> reads the SVG,{" "}
-                            <code>StyleResolver.resolve</code> applies inheritance and transforms,
-                            <code>GeometryBuilder.build</code> emits batches, and{" "}
-                            <code>WebGPURenderer</code> draws those batches.
-                        </p>
-                        <CodeBlock>{`SVG string
-  -> SVGParser.parseDocument(svg)
-  -> StyleResolver.resolve(document.children, document.metadata)
-  -> GeometryBuilder.build(resolvedScene)
-  -> WebGPURenderer.setScene(scene)
-  -> WebGPURenderer.render()`}</CodeBlock>
-                    </Section>
-
-                    <Section id="install" eyebrow="Page 2" title="Install and import">
-                        <p className="leading-8">
-                            In the demo app the package is consumed as a local file dependency, then
-                            imported from <code>svg2gpu</code>. In a published package setup, the
-                            import shape is the same.
-                        </p>
-                        <CodeBlock>{`npm install svg2gpu
-
+                <Section id="react" title="Getting started in React">
+                    <p className="leading-8">
+                        Create the renderer after the host element mounts and destroy it when the
+                        component unmounts. Recreate it when the SVG changes.
+                    </p>
+                    <CodeBlock>{`import { useEffect, useId } from "react";
 import { Svg2GPU } from "svg2gpu";
-import type { GpuScene } from "svg2gpu";`}</CodeBlock>
-                        <p className="leading-8">
-                            WebGPU requires a browser that exposes <code>navigator.gpu</code>. The
-                            wrapper will reject <code>ready</code> if WebGPU is unavailable, if no
-                            adapter can be found, or if a WebGPU canvas context cannot be created.
-                        </p>
-                    </Section>
 
-                    <Section id="first-render" eyebrow="Page 3" title="First render">
-                        <p className="leading-8">
-                            Create a root element, pass its id to <code>Svg2GPU</code>, and provide
-                            an SVG string. If the root is a normal element, the wrapper creates a
-                            canvas inside it. If the root is already a canvas, it renders into that
-                            canvas.
-                        </p>
-                        <CodeBlock>{`<div id="logo-preview" style={{ width: 480, height: 320 }} />
+export function SvgPreview({ svg }: { svg: string }) {
+  const rootId = \`svg2gpu-\${useId().replace(/:/g, "")}\`;
 
-const svg = \`
-<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="50" cy="50" r="38" fill="#2e9dfe" />
-  <path d="M28 54 L44 70 L74 30" fill="none" stroke="white" stroke-width="8" />
-</svg>\`;
-
-const preview = new Svg2GPU("logo-preview", {
-  svg,
-  antialias: true,
-  background: [0.02, 0.025, 0.03, 1],
-  fit: "contain",
-  flattenTolerance: 0.35,
-});
-
-await preview.ready;`}</CodeBlock>
-                    </Section>
-
-                    <Section id="lifecycle" eyebrow="Page 4" title="Renderer lifecycle">
-                        <p className="leading-8">
-                            The wrapper exposes a compact lifecycle: <code>ready</code> for async
-                            WebGPU setup, <code>update</code> for a new SVG string,{" "}
-                            <code>render</code> for another draw, <code>resize</code> when the host
-                            layout changes, and <code>destroy</code> when the component unmounts.
-                        </p>
-                        <CodeBlock>{`useEffect(() => {
-  let cancelled = false;
-  let instance: Svg2GPU | null = null;
-
-  try {
-    instance = new Svg2GPU(rootId, {
+  useEffect(() => {
+    const renderer = new Svg2GPU(rootId, {
       svg,
-      antialias: true,
       fit: "contain",
-      flattenTolerance: 0.35,
+      antialias: true,
+      background: [0.03, 0.04, 0.05, 1],
     });
 
-    instance.ready.catch((error) => {
-      if (!cancelled) console.error(error);
-    });
-  } catch (error) {
-    console.error(error);
-  }
+    renderer.ready.catch(console.error);
 
-  return () => {
-    cancelled = true;
-    instance?.destroy();
-    document.getElementById(rootId)?.replaceChildren();
-  };
-}, [rootId, svg]);`}</CodeBlock>
-                        <p className="leading-8">
-                            This is the same cleanup pattern used by the demo preview. It prevents a
-                            late <code>ready</code> resolution from updating UI after the preview has
-                            been replaced.
-                        </p>
-                    </Section>
+    return () => renderer.destroy();
+  }, [rootId, svg]);
 
-                    <Section id="compile" eyebrow="Page 5" title="Compile without drawing">
-                        <p className="leading-8">
-                            Use <code>Svg2GPU.compile</code> when you want the GPU scene without
-                            creating a WebGPU device. The demo uses this to measure compile cost and
-                            run expectations before or alongside rendering.
-                        </p>
-                        <CodeBlock>{`import { Svg2GPU, type GpuScene } from "svg2gpu";
+  return <div id={rootId} style={{ width: 640, height: 480 }} />;
+}`}</CodeBlock>
+                    <p className="leading-8">
+                        If the container changes size without a React rerender, call{" "}
+                        <code>renderer.resize()</code>. For frequent SVG changes, keep the instance
+                        in a ref and call <code>await renderer.update(nextSvg)</code>.
+                    </p>
+                </Section>
 
-const start = performance.now();
-const scene: GpuScene = Svg2GPU.compile(svg, {
-  flattenTolerance: 0.35,
-});
+                <Section id="vanilla" title="Getting started in vanilla JavaScript">
+                    <p className="leading-8">
+                        Use the browser bundle directly. Pinning the version keeps the example
+                        stable.
+                    </p>
+                    <CodeBlock>{`<div id="preview" style="width: 640px; height: 480px"></div>
 
-console.log("compile ms", performance.now() - start);
+<script src="https://cdn.jsdelivr.net/npm/svg2gpu@1.0.7/lib/svg2gpu.min.js"></script>
+<script>
+  const { Svg2GPU } = window.svg2gpu;
+
+  const svg = \`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="38" fill="#2e9dfe" />
+    </svg>
+  \`;
+
+  const renderer = new Svg2GPU("preview", { svg });
+  renderer.ready.catch(console.error);
+</script>`}</CodeBlock>
+                </Section>
+
+                <Section id="options" title="Options">
+                    <div className="overflow-x-auto rounded-md border">
+                        <table className="w-full min-w-[48rem] border-collapse text-left text-sm">
+                            <thead className="bg-white/5 text-[var(--text)]">
+                                <tr>
+                                    <th className="p-3">Property</th>
+                                    <th className="p-3">Type</th>
+                                    <th className="p-3">Default</th>
+                                    <th className="p-3">What it does</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {options.map(([name, type, defaultValue, description]) => (
+                                    <tr key={name} className="border-t align-top">
+                                        <td className="p-3 font-mono text-[var(--primary)]">
+                                            {name}
+                                        </td>
+                                        <td className="p-3 font-mono">{type}</td>
+                                        <td className="p-3 font-mono">{defaultValue}</td>
+                                        <td className="p-3 leading-6">{description}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p className="leading-8">
+                        <code>contain</code> keeps the whole SVG visible, <code>cover</code> fills
+                        the canvas and may crop, <code>stretch</code> ignores aspect ratio, and{" "}
+                        <code>none</code> uses SVG coordinates directly.
+                    </p>
+                    <p className="leading-8">
+                        See the exact{" "}
+                        <ExternalLink href={`${TYPEDOC_BASE}/types/Svg2GPUOptions.html`}>
+                            Svg2GPUOptions type
+                        </ExternalLink>{" "}
+                        in TypeDoc.
+                    </p>
+                </Section>
+
+                <Section id="methods" title="Methods and lifecycle">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        {[
+                            [
+                                "ready",
+                                "Resolves when the WebGPU device, canvas and first scene are ready.",
+                            ],
+                            ["update(svg)", "Compiles a new SVG, uploads it and renders it."],
+                            ["render()", "Draws the current scene again."],
+                            ["resize()", "Matches the canvas resolution to its displayed size."],
+                            [
+                                "getScene()",
+                                "Returns the compiled scene, including geometry and diagnostics.",
+                            ],
+                            ["getStats()", "Returns batch, vertex and index counts."],
+                            ["destroy()", "Releases GPU resources. Call it during cleanup."],
+                        ].map(([name, description]) => (
+                            <div key={name} className="rounded-md border bg-white/[0.025] p-4">
+                                <code className="text-[var(--primary)]">{name}</code>
+                                <p className="mt-2 leading-6">{description}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <p className="leading-8">
+                        The full class reference is available at{" "}
+                        <ExternalLink href={LINKS.api}>Svg2GPU</ExternalLink>.
+                    </p>
+                </Section>
+
+                <Section id="compile" title="Compile without rendering">
+                    <p className="leading-8">
+                        Use the static compiler when you need geometry, diagnostics or metrics but
+                        do not want to create a WebGPU device.
+                    </p>
+                    <CodeBlock>{`import { Svg2GPU } from "svg2gpu";
+
+const scene = Svg2GPU.compile(svg, { flattenTolerance: 0.25 });
+
 console.log(scene.stats);
 console.log(scene.diagnostics);`}</CodeBlock>
-                        <p className="leading-8">
-                            The compiler path is useful in tests, build-time validation, playgrounds,
-                            and dashboards that need to show vertex or batch counts before drawing.
-                        </p>
-                    </Section>
+                </Section>
 
-                    <Section id="scene" eyebrow="Page 6" title="Scene data">
-                        <p className="leading-8">
-                            A compiled scene contains document metadata, geometry batches,
-                            diagnostics, and aggregate stats. The renderer consumes the scene, but
-                            the scene is also readable application data.
-                        </p>
-                        <CodeBlock>{`type GpuScene = {
-  metadata: SVGDocumentMetadata;
-  batches: GeometryBatch[];
-  diagnostics: Svg2GPUDiagnostic[];
-  stats: {
-    batches: number;
-    vertices: number;
-    indices: number;
-  };
-};`}</CodeBlock>
-                        <p className="leading-8">
-                            Each batch is grouped by primitive kind and color. In the demo checks,
-                            batches are inspected for fill and stroke coverage, finite coordinates,
-                            normalized alpha, and preserved colors.
-                        </p>
-                    </Section>
+                <Section id="examples" title="Live examples">
+                    <p className="leading-8">
+                        The first pen is the smallest working setup. The second renders a much
+                        larger SVG map of Romania. Edit either example and rerun it in CodePen.
+                    </p>
+                    <CodePen id="emgMBRZ" title="Basic svg2gpu example" href={LINKS.basicCodePen} />
+                    <CodePen id="XJpENaj" title="Romania map example" href={LINKS.romaniaCodePen} />
+                </Section>
 
-                    <Section id="options" eyebrow="Page 7" title="Options that matter">
-                        <p className="leading-8">
-                            The most important runtime options are rendering quality, background,
-                            device pixel ratio, fitting behavior, and curve flattening.
-                        </p>
-                        <CodeBlock>{`new Svg2GPU("preview", {
-  svg,
-  antialias: true,              // enables 4x MSAA in WebGPURenderer
-  background: [1, 1, 1, 0],     // RGBA floats, transparent white by default
-  dpr: window.devicePixelRatio, // defaults to devicePixelRatio
-  fit: "contain",              // contain | cover | stretch | none
-  flattenTolerance: 0.35,       // curve approximation tolerance
-});`}</CodeBlock>
-                        <p className="leading-8">
-                            <code>fit</code> controls the SVG viewBox-to-canvas transform.{" "}
-                            <code>contain</code> preserves aspect ratio inside the canvas,{" "}
-                            <code>cover</code> fills the canvas, <code>stretch</code> maps width and
-                            height independently, and <code>none</code> uses SVG units directly.
-                        </p>
-                    </Section>
-
-                    <Section id="transforms" eyebrow="Page 8" title="Transforms and styles">
-                        <p className="leading-8">
-                            The parser supports SVG primitives such as paths, circles, ellipses,
-                            rectangles, polygons, polylines, lines, and groups. Group styles and
-                            transforms are resolved before geometry is built, so nested SVG can be
-                            authored naturally.
-                        </p>
-                        <CodeBlock>{`<svg viewBox="0 0 260 180" xmlns="http://www.w3.org/2000/svg">
-  <g fill="#38bdf8" stroke="#e0f2fe" stroke-width="2.5" opacity="0.78">
-    <rect x="22" y="28" width="56" height="44" />
-    <g transform="translate(108 50) rotate(24)">
-      <rect x="-26" y="-20" width="52" height="40" />
-      <line x1="-42" y1="32" x2="42" y2="32" />
-    </g>
-  </g>
-</svg>`}</CodeBlock>
-                        <p className="leading-8">
-                            For transform behavior, see{" "}
-                            <DocLink href={`${TYPEDOC_BASE}/classes/TransformParser.html`}>
-                                TransformParser
-                            </DocLink>
-                            . It uses the familiar SVG matrix form where a point becomes{" "}
-                            <code>x&apos; = a*x + c*y + e</code> and{" "}
-                            <code>y&apos; = b*x + d*y + f</code>.
-                        </p>
-                    </Section>
-
-                    <Section id="demo" eyebrow="Page 9" title="Demo patterns">
-                        <p className="leading-8">
-                            The demo combines native SVG and WebGPU views, then samples both. The
-                            WebGPU sample is just another render call, which makes it easy to measure
-                            submit cost or redraw after zooming.
-                        </p>
-                        <CodeBlock>{`const sampleWebGpu = useCallback(() => {
-  gpuInstanceRef.current?.render();
-}, []);
-
-useEffect(() => {
-  if (renderStatus.kind !== "ready") return;
-
-  const frameId = requestAnimationFrame(() => {
-    const start = performance.now();
-    gpuInstanceRef.current?.resize();
-    gpuInstanceRef.current?.render();
-    setGpuZoomRenderMs(performance.now() - start);
-  });
-
-  return () => cancelAnimationFrame(frameId);
-}, [renderStatus.kind, zoom]);`}</CodeBlock>
-                        <p className="leading-8">
-                            The same demo uses <code>Svg2GPU.compile</code> for checks like minimum
-                            batch count, minimum vertices, finite geometry, alpha range, and color
-                            preservation. Those checks are a solid template for regression tests.
-                        </p>
-                    </Section>
-
-                    <Section id="limits" eyebrow="Page 10" title="Limits and next steps">
-                        <p className="leading-8">
-                            The current renderer is intentionally focused: it turns supported SVG
-                            shapes into filled and stroked triangle batches with vertex colors. Text
-                            elements are reported as unsupported, and advanced paint servers such as
-                            gradients or patterns should be treated as outside the stable path unless
-                            implemented in the source.
-                        </p>
-                        <p className="leading-8">
-                            For application code, start with{" "}
-                            <DocLink href={`${TYPEDOC_BASE}/classes/Svg2GPU.html`}>Svg2GPU</DocLink>.
-                            For custom pipelines, inspect the lower-level classes in TypeDoc:
-                            <DocLink href={`${TYPEDOC_BASE}/classes/SVGParser.html`}>
-                                {" "}
-                                SVGParser
-                            </DocLink>
-                            ,{" "}
-                            <DocLink href={`${TYPEDOC_BASE}/classes/StyleResolver.html`}>
-                                StyleResolver
-                            </DocLink>
-                            ,{" "}
-                            <DocLink href={`${TYPEDOC_BASE}/classes/GeometryBuilder.html`}>
-                                GeometryBuilder
-                            </DocLink>
-                            , and{" "}
-                            <DocLink href={`${TYPEDOC_BASE}/classes/WebGPURenderer.html`}>
-                                WebGPURenderer
-                            </DocLink>
-                            .
-                        </p>
-                        <CodeBlock>{`// Practical checklist
-// 1. Validate or sanitize SVG input before rendering user-provided content.
-// 2. Await instance.ready before relying on GPU output.
-// 3. Call resize() after host layout changes.
-// 4. Call destroy() on unmount.
-// 5. Use compile() in tests to lock down scene stats and diagnostics.`}</CodeBlock>
-                    </Section>
-                </article>
-            </div>
+                <Section id="next" title="Where to go next">
+                    <p className="leading-8">
+                        Experiment in the{" "}
+                        <ExternalLink href={LINKS.playground}>playground</ExternalLink>, inspect
+                        precise signatures in the{" "}
+                        <ExternalLink href={LINKS.typedoc}>API reference</ExternalLink>, or browse
+                        the <ExternalLink href={LINKS.github}>source on GitHub</ExternalLink>.
+                    </p>
+                </Section>
+            </article>
         </main>
     );
 }

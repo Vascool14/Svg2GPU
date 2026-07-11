@@ -1,37 +1,55 @@
-# Svg2GPU
+# svg2gpu
 
-`Svg2GPU` is a lightweight toolkit for parsing SVG data and rendering it through GPU pipelines. The current renderer implementation is WebGPU-based, but the project is designed with a general GPU-oriented direction in mind: predictable geometry processing, typed rendering data, and tooling that maps well to modern GPU workflows.
+Render SVG markup with WebGPU, or compile it into typed, GPU-ready geometry.
 
-## Getting started:
+[Website](https://vascool14.github.io/Svg2GPU/) · [Playground](https://vascool14.github.io/Svg2GPU/playground) · [Guide](https://vascool14.github.io/Svg2GPU/docs) · [API reference](https://vascool14.github.io/Svg2GPU/typedoc/classes/Svg2GPU.html) · [npm](https://www.npmjs.com/package/svg2gpu)
 
-### Or try it directly in this repo:
+## Try it
 
-Clone this repository:
+- [Basic CodePen](https://codepen.io/vasculandrei/pen/emgMBRZ?editors=1010) — the smallest complete browser example.
+- [Romania map CodePen](https://codepen.io/vasculandrei/pen/XJpENaj?editors=1010) — a larger real-world SVG.
+- [Interactive playground](https://vascool14.github.io/Svg2GPU/playground) — edit SVG and compare native SVG with WebGPU output.
+
+## Install
+
 ```bash
-git clone https://github.com/Vascool14/Svg2GPU
+npm install svg2gpu
 ```
 
-Change directory to the library directory to build the latest svg2gpu.min.js
-```bash
-cd svg2gpu/svg2gpu 
-npm i
-npm run build       # to build the libary min js file in "/lib"
+```ts
+import { Svg2GPU } from "svg2gpu";
+
+const renderer = new Svg2GPU("preview", {
+  svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="40" fill="#2e9dfe" />
+  </svg>`,
+  fit: "contain",
+  antialias: true,
+});
+
+await renderer.ready;
 ```
 
-Then, use the `svg2gpu.min.js` file as an import wherever you might need to use it.
+For plain HTML, React integration, every renderer option, and embedded examples, read the [getting-started guide](https://vascool14.github.io/Svg2GPU/docs). For exact classes and types, open the [TypeDoc API reference](https://vascool14.github.io/Svg2GPU/typedoc/classes/Svg2GPU.html).
 
-> Or, skip this entirely and inside your project do `npm i svg2gpu`
+## Develop locally
 
-## The Playground:
+```bash
+git clone https://github.com/Vascool14/Svg2GPU.git
+cd Svg2GPU/svg2gpu
+npm install
+npm test
+npm run build
+```
 
-The fastest way to understand the project in practice. You can load multiple SVG examples, edit them live, and instantly compare native SVG output with the GPU-rendered result. It also includes validation feedback and a terminal-style log so you can iterate safely while experimenting with complex shapes.
+The library is in [`svg2gpu/`](svg2gpu/), the website is in [`client/`](client/), and the standalone examples are in [`codepen/`](codepen/).
 
-<div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap;">
-  <img src="utils/screenshots/BasicGeometries.png" alt="Playground Basic Geometries" width="48%" />
-  <img src="utils/screenshots/TigerSVG.png" alt="Playground Tiger SVG" width="48%" />
-</div>
+## Screenshots
 
-## TypeDoc:
-included to make the API surface easy to explore. It documents core parser and renderer types, enums, and utilities, so you can quickly move from interactive experimentation to real integration in your own app.
+| Playground                                                          | TypeDoc                                                 |
+| ------------------------------------------------------------------- | ------------------------------------------------------- |
+| ![Basic geometry playground](utils/screenshots/BasicGeometries.png) | ![TypeDoc API reference](utils/screenshots/Typedoc.png) |
 
-![TypeDoc Preview](utils/screenshots/Typedoc.png)
+## License
+
+[MIT](LICENSE)

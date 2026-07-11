@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import Logo from "./icons/Logo";
 import NpmIcon from "./icons/NpmIcon";
 import GithubIcon from "./icons/GithubIcon";
+import { LINKS } from "../links";
 import "./components.css";
 
 export default function Navbar() {
@@ -37,7 +38,7 @@ export default function Navbar() {
                 {/* NPM */}
                 <a
                     className="max-sm:hidden"
-                    href="https://npmjs.com/package/svg2gpu"
+                    href={LINKS.npm}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="npm"
@@ -49,7 +50,7 @@ export default function Navbar() {
 
                 {/* Github */}
                 <a
-                    href="https://github.com/vascool14/svg2gpu"
+                    href={LINKS.github}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="github"

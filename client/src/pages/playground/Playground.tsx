@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import Editor from "@monaco-editor/react";
 import { SVG_EXAMPLES } from "./constants";
 
-const INITIAL_SVG = SVG_EXAMPLES[5]?.svg
+const INITIAL_SVG = SVG_EXAMPLES[4]?.svg
 
 type ConsoleMessage = {
     id: number;
@@ -105,7 +105,7 @@ export default function Playground() {
     );
     const [editorSvg, setEditorSvg] = useState(INITIAL_SVG);
     const [renderedSvg, setRenderedSvg] = useState(INITIAL_SVG);
-    const [selectedExampleIndex, setSelectedExampleIndex] = useState(5);
+    const [selectedExampleIndex, setSelectedExampleIndex] = useState(4);
     const [isExampleMenuOpen, setIsExampleMenuOpen] = useState(false);
     const [showBorder, setShowBorder] = useState(false);
     const [terminalLines, setTerminalLines] = useState(TERMINAL_DEFAULT_LINES);

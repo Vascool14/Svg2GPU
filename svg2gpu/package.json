@@ -1,6 +1,6 @@
 {
 	"name": "svg2gpu",
-	"version": "1.0.7",
+	"version": "1.0.",
 	"description": "Parse SVG markup into GPU-ready geometry and render it with WebGPU.",
 	"main": "lib/svg2gpu.min.js",
 	"module": "lib/svg2gpu.mjs",
@@ -39,7 +39,7 @@
 	"bugs": {
 		"url": "https://github.com/Vascool14/Svg2GPU/issues"
 	},
-	"homepage": "https://github.com/Vascool14/Svg2GPU#readme",
+	"homepage": "https://vascool14.github.io/Svg2GPU/",
 	"keywords": [
 		"svg",
 		"webgpu",

@@ -43,6 +43,9 @@ jobs:
 
       - name: Prepare Pages routes
         run: |
+          mkdir -p client/dist/docs client/dist/playground
+          cp client/dist/index.html client/dist/docs/index.html
+          cp client/dist/index.html client/dist/playground/index.html
           cp client/dist/index.html client/dist/404.html
           find client/dist/typedoc -name '*.html' -exec sed -i \
             -e 's|href="/"|href="/Svg2GPU/"|g' \

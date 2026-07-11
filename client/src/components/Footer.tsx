@@ -1,7 +1,8 @@
 import Logo from "./icons/Logo";
 import { Link } from "react-router-dom";
+import { LINKS } from "../links";
 
-const GITHUB_REPO_URL = "https://github.com/vascool14/svg2gpu";
+const GITHUB_REPO_URL = LINKS.github;
 const GITHUB_LICENSE_URL = `${GITHUB_REPO_URL}/blob/main/LICENSE`;
 const GITHUB_ISSUE_URL = `${GITHUB_REPO_URL}/issues/new?labels=bug`;
 const GITHUB_FEATURE_URL = `${GITHUB_REPO_URL}/issues/new?labels=enhancement`;

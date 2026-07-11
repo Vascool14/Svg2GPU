@@ -1,24 +1,14 @@
 /**
  * Logger utility for logging messages in the svg2gpu library.
  *
- * By default, all log levels are enabled:
- *
- * ```typescript
- * Logger.SHOW_ERRORS = true;
- * Logger.SHOW_WARNINGS = true;
- * Logger.SHOW_DEBUG = true;
- * Logger.SHOW_INFO = true;
- * Logger.SHOW_LOG = true;
- * ```
- *
- * You can control the visibility of each log level by setting these properties to `false`.
+ * You can control the visibility of each log level by setting these properties to `false` or `true`.
  */
 export class Logger {
 	public static SHOW_ERRORS: boolean = true;
 	public static SHOW_WARNINGS: boolean = true;
-	public static SHOW_DEBUG: boolean = true;
 	public static SHOW_INFO: boolean = true;
-	public static SHOW_LOG: boolean = true;
+	public static SHOW_DEBUG: boolean = false;
+	public static SHOW_LOG: boolean = false;
 
 	public static error(message: string, context?: any): void {
 		if (!Logger.SHOW_ERRORS) return;

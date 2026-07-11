@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * { box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <div id="svg2gpu-root" style="width: 100%; height: 100%;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/svg2gpu@1.0.6/lib/svg2gpu.min.js"></script>
+    <script>
+        const { Svg2GPU } = window.svg2gpu;
+
+        const result = new Svg2GPU("svg2gpu-root", {
+            svg: `<svg width="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="38" fill="#2e9dfe" />
+                <path d="M28 54 L44 70 L74 30" fill="none" stroke="white" stroke-width="8" stroke-linejoin="bevel" />
+            </svg>`,
+            antialias: true,
+            flattenTolerance: 0.1,
+            // background: [0, 0, 0, 1],
+            // fit: "contain",
+        });
+    </script>
+</body>
+</html>

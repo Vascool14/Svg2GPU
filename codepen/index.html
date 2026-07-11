@@ -14,7 +14,7 @@
         <div id="output-div" style="width: 600px; height: 600px; border: 1px red solid;"></div>
     </section>
 
-    <script src="../svg2gpu/lib/svg2gpu.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg2gpu@1.0.6/lib/svg2gpu.min.js"></script>
     <script>
         const { Svg2GPU } = window.svg2gpu;
         
@@ -30,7 +30,6 @@
             // background: [0, 0, 0, 1],
             // fit: "contain",
         });
-
 
         // Add this to also display the original SVG for comparison
         document.getElementById("svg-container").innerHTML = svg;

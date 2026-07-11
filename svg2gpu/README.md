@@ -11,7 +11,7 @@ npm i svg2gpu
 For CodePen or a plain HTML page, load the browser bundle from jsDelivr:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/svg2gpu@1.0.6/lib/svg2gpu.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/svg2gpu/lib/svg2gpu.min.js"></script>
 <script>
   const { Svg2GPU } = window.svg2gpu;
 </script>
